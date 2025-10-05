@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Placar de Luta Animado</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  font-family: Arial, sans-serif;
+  transition: all 0.3s ease;
+  transform-origin: top center;
+}
+body.dark { background-color: #0e0e0e; color: #fff; }
+body.light { background-color: #f0f0f0; color: #000; }
+
+h1 { font-size: 3rem; margin: 10px 0; text-align: center; }
+
+.top-bar {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.fullscreen-btn, .reset-btn, .theme-btn { background: #007bff; color:white; border:none; padding:12px 20px; font-size:1.2rem; border-radius:10px; cursor:pointer; transition:0.2s; }
+.fullscreen-btn:hover,.reset-btn:hover,.theme-btn:hover{background:#005fcc;}
+.zoom-control { display:flex; align-items:center; gap:10px; }
+.zoom-control input[type="range"] { width:150px; }
+
+.container { display:flex; justify-content:space-between; align-items:center; width:100%; flex:1; max-width:1400px; gap:20px; flex-wrap:wrap; }
+
+.placar { flex:1; min-width:300px; max-width:450px; border-radius:20px; padding:25px; text-align:center; box-shadow:0 0 20px rgba(255,255,255,0.1); transition:0.3s; }
+.placar.adversario1 { background-color:#0a1f5b; }
+.placar.adversario2 { background-color:#fff; color:#000; }
+body.light .placar.adversario1 { background-color:#9bb4ff; }
+body.light .placar.adversario2 { background-color:#fff; color:#000; }
+
+.nome { font-size:2rem; margin-bottom:20px; text-align:center; width:100%; padding:5px; border-radius:10px; border:none; }
+
+.quadrados { display:flex; justify-content:space-around; gap:15px; flex-wrap:wrap; }
+
+.quadrado { flex:1; min-width:90px; border-radius:15px; padding:20px; display:flex; flex-direction:column; align-items:center; justify-content:center; transition:0.2s; }
+.ponto { background-color:#00cc66; }
+.vantagem { background-color:#ffcc00; }
+.punicao { background-color:#ff3333; }
+body.light .ponto { background-color:#66ff99; }
+body.light .vantagem { background-color:#ffeb66; }
+body.light .punicao { background-color:#ff6666; }
+
+.valor { font-size:5rem; font-weight:bold; margin:8px 0; transition:0.2s; }
+.valor.anim { transform: scale(1.5); color:#fff; }
+
+.botoes button { margin:3px; border:none; border-radius:10px; padding:12px 16px; cursor:pointer; font-weight:bold; font-size:1.2rem; }
+.botoes button:hover { opacity:0.85; }
+
+.timer-container { text-align:center; padding:30px; border-radius:20px; box-shadow:0 0 15px rgba(255,255,255,0.2); width:100%; max-width:400px; transition:0.2s; }
+.timer-container.alert { animation: pisca 0.5s infinite; }
+
+@keyframes pisca { 0%,100%{ background:red; color:#fff; }50%{ background:#000; color:#fff; } }
+
+.timer-display { font-size:6rem; font-weight:bold; margin:20px 0; }
+
+.timer-controls input { width:100px; padding:8px; text-align:center; font-size:1.2rem; border-radius:8px; border:none; }
+.timer-controls button { margin:6px; border:none; border-radius:8px; padding:10px 14px; cursor:pointer; font-weight:bold; font-size:1rem; }
+
+.reset-btn { background:#444; margin-bottom:15px; }
+
+@media(max-width:900px){ .container{flex-direction:column; align-items:center;} .placar,.timer-container{max-width:90%;} .timer-display{font-size:4rem;} .valor{font-size:4rem;} .nome{font-size:1.6rem;} }
+@media(max-width:600px){ h1{font-size:2rem;} .timer-display{font-size:3rem;} .valor{font-size:3rem;} }
+
+</style>
+</head>
+<body class="dark">
+  <div class="top-bar">
+    <h1>Placar de Luta</h1>
+    <div class="zoom-control">
+      <label for="zoomRange">🔍 Tamanho:</label>
+      <input type="range" id="zoomRange" min="0.5" max="1.5" step="0.05" value="1">
+    </div>
+    <button class="theme-btn" onclick="alternarTema()">🌓 Tema</button>
+    <button class="fullscreen-btn" onclick="alternarTelaCheia()">🖥️ Tela Cheia</button>
+  </div>
+
+  <div class="container">
+    <div class="placar adversario1">
+      <input class="nome" id="nome1" value="Adversário 1"/>
+      <div class="quadrados">
+        <div class="quadrado ponto">
+          <div>Ponto</div>
+          <div class="valor" id="ponto1">0</div>
+          <div class="botoes">
+            <button onclick="alterar('ponto1',1)">+</button>
+            <button onclick="alterar('ponto1',-1)">-</button>
+          </div>
+        </div>
+        <div class="quadrado vantagem">
+          <div>Vantagem</div>
+          <div class="valor" id="vantagem1">0</div>
+          <div class="botoes">
+            <button onclick="alterar('vantagem1',1)">+</button>
+            <button onclick="alterar('vantagem1',-1)">-</button>
+          </div>
+        </div>
+        <div class="quadrado punicao">
+          <div>Punição</div>
+          <div class="valor" id="punicao1">0</div>
+          <div class="botoes">
+            <button onclick="alterar('punicao1',1)">+</button>
+            <button onclick="alterar('punicao1',-1)">-</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="timer-container" id="timerContainer">
+      <div>⏱️ Timer</div>
+      <div class="timer-display" id="timer">00:00</div>
+      <div class="timer-controls">
+        <input type="number" id="minutosInput" placeholder="Minutos" min="1" max="60">
+        <div>
+          <button onclick="iniciarTimer()">Iniciar</button>
+          <button onclick="pausarTimer()">Pausar</button>
+          <button onclick="resetarTimer()">Zerar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="placar adversario2">
+      <input class="nome" id="nome2" value="Adversário 2"/>
+      <div class="quadrados">
+        <div class="quadrado ponto">
+          <div>Ponto</div>
+          <div class="valor" id="ponto2">0</div>
+          <div class="botoes">
+            <button onclick="alterar('ponto2',1)">+</button>
+            <button onclick="alterar('ponto2',-1)">-</button>
+          </div>
+        </div>
+        <div class="quadrado vantagem">
+          <div>Vantagem</div>
+          <div class="valor" id="vantagem2">0</div>
+          <div class="botoes">
+            <button onclick="alterar('vantagem2',1)">+</button>
+            <button onclick="alterar('vantagem2',-1)">-</button>
+          </div>
+        </div>
+        <div class="quadrado punicao">
+          <div>Punição</div>
+          <div class="valor" id="punicao2">0</div>
+          <div class="botoes">
+            <button onclick="alterar('punicao2',1)">+</button>
+            <button onclick="alterar('punicao2',-1)">-</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="reset-btn" onclick="resetarTudo()">🔁 Zerar Tudo</button>
+
+<script>
+function alterar(id, valor){
+  const el=document.getElementById(id);
+  let num=parseInt(el.innerText);
+  num=Math.max(0,num+valor);
+  el.innerText=num;
+  el.classList.add('anim');
+  setTimeout(()=>{ el.classList.remove('anim'); },200);
+}
+
+// Timer
+let tempoRestante=0, intervalo=null, rodando=false;
+const timerEl=document.getElementById('timer');
+const timerContainer=document.getElementById('timerContainer');
+
+function iniciarTimer(){
+  if(rodando) return;
+  const input=document.getElementById('minutosInput');
+  if(tempoRestante===0 && input.value) tempoRestante=parseInt(input.value)*60;
+  if(tempoRestante>0){ rodando=true; intervalo=setInterval(atualizarTimer,1000);}
+}
+
+function pausarTimer(){ rodando=false; clearInterval(intervalo);}
+function resetarTimer(){ rodando=false; clearInterval(intervalo); tempoRestante=0; timerEl.innerText="00:00"; timerContainer.classList.remove('alert');}
+function atualizarTimer(){
+  if(tempoRestante<=0){ clearInterval(intervalo); rodando=false; timerContainer.classList.add('alert'); alert("⏰ Tempo esgotado!"); return; }
+  tempoRestante--;
+  const min=String(Math.floor(tempoRestante/60)).padStart(2,'0');
+  const seg=String(tempoRestante%60).padStart(2,'0');
+  timerEl.innerText=`${min}:${seg}`;
+}
+
+// Resetar tudo
+function resetarTudo(){
+  ['ponto1','vantagem1','punicao1','ponto2','vantagem2','punicao2'].forEach(id=>{ document.getElementById(id).innerText=0; });
+  resetarTimer();
+}
+
+// Tela cheia
+function alternarTelaCheia(){
+  if(!document.fullscreenElement){ document.documentElement.requestFullscreen(); }
+  else{ document.exitFullscreen(); }
+}
+
+// Zoom
+const zoomRange=document.getElementById("zoomRange");
+zoomRange.addEventListener("input",()=>{ document.body.style.transform=`scale(${zoomRange.value})`; });
+
+// Tema
+function alternarTema(){ document.body.classList.toggle('dark'); document.body.classList.toggle('light'); }
+</script>
+</body>
+</html>
